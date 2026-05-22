@@ -291,6 +291,15 @@ jobs:
 - GitHub OAuth only — no email/password in MVP
 - Octokit for file fetching — no git clone (works on Vercel serverless)
 
+## Build-time lessons (added during initial setup)
+- **Node version matters**: Always run with Node 20 via `nvm use 20`. Node 12 (macOS default) breaks Prisma and Next.js. `.nvmrc` pins 20.
+- **Prisma 7 breaking changes**: v7 dropped `url` from schema datasource and removed the `datasourceUrl` constructor option. Use `@prisma/adapter-pg` with `PrismaPg` and pass it to `new PrismaClient({ adapter })`. Schema generator must be `prisma-client-js` (not `prisma-client`).
+- **@auth/prisma-adapter v2 is for Auth.js v5**: This project uses next-auth v4 — must use `@auth/prisma-adapter@^1`. v2 causes silent session save failures.
+- **next-auth database sessions + Prisma 7**: Incompatible. Switched to `strategy: 'jwt'` — sessions in cookies, no DB session table writes needed.
+- **Next.js 16 renamed middleware**: `middleware.ts` → `proxy.ts`. The export must be a named function, not a bare re-export.
+- **Prisma CLI reads `.env`, not `.env.local`**: Keep `DATABASE_URL` in `.env` for migrations. Next.js reads both at runtime.
+- **Neon free tier cold starts**: First DB query after idle can take 5–6s. Expected behavior, not a bug.
+
 ---
 
 ## How to work with Claude Code

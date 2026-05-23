@@ -22,6 +22,7 @@ export default async function DashboardPage() {
         name: r.name,
         url: r.url,
         branch: r.branch,
+        projectType: r.projectType,
       }))}
     />
   )

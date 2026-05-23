@@ -115,6 +115,20 @@ export async function runAnalysis(analysisRunId: string): Promise<void> {
     const highRiskCount = findings.filter((f) => f.severity === 'HIGH').length
     const healthScore = Math.max(0, 100 - Math.round((highRiskCount / Math.max(files.length, 1)) * 100))
 
+    // coverageScore = % of source files that have a matching test file
+    const SOURCE_EXTS = new Set(['.rb', '.js', '.ts', '.jsx', '.tsx'])
+    const isTestFile = (p: string) =>
+      /\.(test|spec)\.[jt]sx?$/.test(p) || p.includes('spec/') || p.includes('__tests__/') || p.endsWith('_spec.rb')
+    const sourceFiles = files.filter((f) => {
+      const ext = f.path.slice(f.path.lastIndexOf('.'))
+      return SOURCE_EXTS.has(ext) && !isTestFile(f.path)
+    })
+    const missingTestCount = findings.filter((f) => f.category === 'MISSING_TEST').length
+    const coveredCount = sourceFiles.length - missingTestCount
+    const coverageScore = sourceFiles.length > 0
+      ? Math.round((coveredCount / sourceFiles.length) * 100)
+      : 100
+
     await prisma.analysisRun.update({
       where: { id: analysisRunId },
       data: {
@@ -122,6 +136,7 @@ export async function runAnalysis(analysisRunId: string): Promise<void> {
         totalFiles: files.length,
         totalFindings: findings.length,
         highRiskCount,
+        coverageScore,
         healthScore,
         completedAt: new Date(),
       },

@@ -7,8 +7,8 @@ vi.mock('next/navigation', () => ({
 }))
 
 const repos = [
-  { id: '1', name: 'my-app', url: 'https://github.com/u/my-app', branch: 'main' },
-  { id: '2', name: 'api-service', url: 'https://github.com/u/api-service', branch: 'main' },
+  { id: '1', name: 'my-app', url: 'https://github.com/u/my-app', branch: 'main', projectType: 'GENERIC' as const },
+  { id: '2', name: 'api-service', url: 'https://github.com/u/api-service', branch: 'main', projectType: 'NODE' as const },
 ]
 
 describe('RepoList', () => {

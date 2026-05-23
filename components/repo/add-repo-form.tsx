@@ -61,6 +61,7 @@ export function AddRepoForm({ workspaceId }: Props) {
       }
 
       router.push('/dashboard')
+      router.refresh()
     } catch {
       setServerError('Network error — check your connection and try again')
     } finally {

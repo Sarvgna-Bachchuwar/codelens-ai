@@ -2,6 +2,8 @@ import { prisma } from '@/lib/db/prisma'
 import { getDemoUserId } from '@/lib/demo-user'
 import { RepoList } from '@/components/dashboard/repo-list'
 
+export const dynamic = 'force-dynamic'
+
 export default async function DashboardPage() {
   const userId = await getDemoUserId()
 

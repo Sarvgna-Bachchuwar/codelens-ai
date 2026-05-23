@@ -2,6 +2,8 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { prisma } from '@/lib/db/prisma'
 import { getDemoUserId } from '@/lib/demo-user'
+
+export const dynamic = 'force-dynamic'
 import { RecommendationsList } from '@/components/dashboard/recommendations-list'
 
 type Props = {

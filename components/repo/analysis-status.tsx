@@ -52,6 +52,8 @@ export function AnalysisStatus({ repositoryId, currentRunId, currentStatus }: Pr
         if (data.status === 'COMPLETED' || data.status === 'FAILED') {
           clearInterval(interval)
           router.refresh()
+          // Force a full page reload to ensure server components re-render with fresh data
+          setTimeout(() => window.location.reload(), 300)
         }
       } catch {
         // ignore transient network errors

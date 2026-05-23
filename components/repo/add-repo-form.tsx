@@ -49,12 +49,20 @@ export function AddRepoForm({ workspaceId }: Props) {
       })
 
       if (!res.ok) {
-        const data = (await res.json()) as { error?: string }
-        setServerError(data.error ?? 'Something went wrong')
+        let message = 'Something went wrong — please try again'
+        try {
+          const data = (await res.json()) as { error?: string }
+          if (data.error) message = data.error
+        } catch {
+          message = `Server error (${res.status}) — please try again`
+        }
+        setServerError(message)
         return
       }
 
       router.push('/dashboard')
+    } catch {
+      setServerError('Network error — check your connection and try again')
     } finally {
       setLoading(false)
     }

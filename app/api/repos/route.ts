@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server'
-import { Octokit } from '@octokit/rest'
 import { prisma } from '@/lib/db/prisma'
 import { getDemoUserId } from '@/lib/demo-user'
 import { parseGithubUrl } from '@/lib/github/validate'
@@ -32,17 +31,6 @@ export async function POST(req: Request) {
     ;({ owner, repo } = parseGithubUrl(url))
   } catch {
     return NextResponse.json({ error: 'Invalid GitHub URL' }, { status: 400 })
-  }
-
-  // Unauthenticated — works for public repos (60 req/hr rate limit)
-  const octokit = new Octokit()
-  try {
-    await octokit.repos.get({ owner, repo })
-  } catch {
-    return NextResponse.json(
-      { error: 'Repository not found or not accessible (must be public)' },
-      { status: 422 },
-    )
   }
 
   const workspace =

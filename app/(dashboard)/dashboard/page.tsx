@@ -1,18 +1,13 @@
-import { getServerSession } from 'next-auth/next'
-import { redirect } from 'next/navigation'
-import { authOptions } from '@/lib/auth/options'
 import { prisma } from '@/lib/db/prisma'
+import { getDemoUserId } from '@/lib/demo-user'
 import { RepoList } from '@/components/dashboard/repo-list'
 
 export default async function DashboardPage() {
-  const session = await getServerSession(authOptions)
-  if (!session?.user?.id) redirect('/login')
+  const userId = await getDemoUserId()
 
   const workspace =
-    (await prisma.workspace.findFirst({ where: { userId: session.user.id } })) ??
-    (await prisma.workspace.create({
-      data: { name: 'My Workspace', userId: session.user.id },
-    }))
+    (await prisma.workspace.findFirst({ where: { userId } })) ??
+    (await prisma.workspace.create({ data: { name: 'My Workspace', userId } }))
 
   const repos = await prisma.repository.findMany({
     where: { workspaceId: workspace.id },

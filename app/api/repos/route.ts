@@ -1,22 +1,14 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth/next'
 import { Octokit } from '@octokit/rest'
-import { authOptions } from '@/lib/auth/options'
 import { prisma } from '@/lib/db/prisma'
+import { getDemoUserId } from '@/lib/demo-user'
 import { parseGithubUrl } from '@/lib/github/validate'
 
 export async function GET() {
-  const session = await getServerSession(authOptions)
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const userId = await getDemoUserId()
 
-  const workspace = await prisma.workspace.findFirst({
-    where: { userId: session.user.id },
-  })
-  if (!workspace) {
-    return NextResponse.json([])
-  }
+  const workspace = await prisma.workspace.findFirst({ where: { userId } })
+  if (!workspace) return NextResponse.json([])
 
   const repos = await prisma.repository.findMany({
     where: { workspaceId: workspace.id },
@@ -27,10 +19,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const session = await getServerSession(authOptions)
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const userId = await getDemoUserId()
 
   const { url, branch, projectType } = (await req.json()) as {
     url: string
@@ -45,26 +34,20 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Invalid GitHub URL' }, { status: 400 })
   }
 
-  const account = await prisma.account.findFirst({
-    where: { userId: session.user.id, provider: 'github' },
-    select: { access_token: true },
-  })
-
-  const octokit = new Octokit({ auth: account?.access_token ?? undefined })
+  // Unauthenticated — works for public repos (60 req/hr rate limit)
+  const octokit = new Octokit()
   try {
     await octokit.repos.get({ owner, repo })
   } catch {
     return NextResponse.json(
-      { error: 'Repository not found or not accessible' },
+      { error: 'Repository not found or not accessible (must be public)' },
       { status: 422 },
     )
   }
 
   const workspace =
-    (await prisma.workspace.findFirst({ where: { userId: session.user.id } })) ??
-    (await prisma.workspace.create({
-      data: { name: 'My Workspace', userId: session.user.id },
-    }))
+    (await prisma.workspace.findFirst({ where: { userId } })) ??
+    (await prisma.workspace.create({ data: { name: 'My Workspace', userId } }))
 
   const created = await prisma.repository.create({
     data: {

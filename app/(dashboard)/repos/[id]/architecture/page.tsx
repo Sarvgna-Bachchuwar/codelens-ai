@@ -1,8 +1,7 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth/options'
 import { prisma } from '@/lib/db/prisma'
+import { getDemoUserId } from '@/lib/demo-user'
 import { ArchGraph } from '@/components/dashboard/arch-graph'
 
 type Props = {
@@ -10,15 +9,13 @@ type Props = {
 }
 
 export default async function ArchitecturePage({ params }: Props) {
-  const session = await getServerSession(authOptions)
-  if (!session?.user?.id) notFound()
-
+  const userId = await getDemoUserId()
   const { id } = await params
 
   const repo = await prisma.repository.findFirst({
     where: {
       id,
-      workspace: { userId: session.user.id },
+      workspace: { userId },
     },
     select: {
       id: true,

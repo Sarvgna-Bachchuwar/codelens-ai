@@ -1,8 +1,7 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth/options'
 import { prisma } from '@/lib/db/prisma'
+import { getDemoUserId } from '@/lib/demo-user'
 import { MetricCards } from '@/components/dashboard/metric-cards'
 import { FindingsDashboard } from '@/components/dashboard/findings-dashboard'
 import { AnalysisStatus } from '@/components/repo/analysis-status'
@@ -12,15 +11,13 @@ type Props = {
 }
 
 export default async function RepoDashboardPage({ params }: Props) {
-  const session = await getServerSession(authOptions)
-  if (!session?.user?.id) notFound()
-
+  const userId = await getDemoUserId()
   const { id } = await params
 
   const repo = await prisma.repository.findFirst({
     where: {
       id,
-      workspace: { userId: session.user.id },
+      workspace: { userId },
     },
     include: {
       analysisRuns: {
